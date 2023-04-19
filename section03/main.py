@@ -1,5 +1,6 @@
 from typing import List, Optional
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, status, Response, Path, Query, Header
+from fastapi.responses import JSONResponse
 from models import Curso
 app = FastAPI()
 
@@ -22,7 +23,7 @@ async def getCursos():
 
 
 @app.get('/cursos/{id}')
-async def getCurso(id: int):
+async def getCurso(id: int = Path(default=None, title='Id do curso', description='ID DO CURSO', gt=0, lt=3)):
     try:
         return ({id: cursos[id]})
     except Exception:
@@ -36,6 +37,25 @@ async def post_curso(curso: Curso):
     cursos[next_id] = curso
     del curso.id
     return curso
+    
+@app.put('/cursos/{id}')
+async def put_curso(id: int, curso: Curso):
+    if id in cursos:
+        cursos[id] = curso
+        del curso.id
+    else:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'id do curso digitado não existe: {id}')
+    return curso
+
+
+@app.delete('/cursos/{id}')
+async def delete_curso(id: int):
+    if id in cursos:
+        del cursos[id]
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+    else:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'id do curso digitado não existe: {id}')
     
 
 # if __name__ == '__main__':
